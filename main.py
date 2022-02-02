@@ -1,6 +1,5 @@
 import random
 import json
-from typing import ClassVar
 
 # BD User creation
 def createUser():
@@ -8,10 +7,11 @@ def createUser():
     usersKeys = {}
     length = range(5)
 
-    user = str(input('Ingrese su Nombre'))
-    mail = str(input('ingrese su email'))
-    rut = str(input('Ingrese su Rut'))
-    clave = str(input('Ingrese su Clave'))
+    user = str(input('Ingrese su Nombre '))
+    mail = str(input('ingrese su email '))
+    rut = str(input('Ingrese su Rut '))
+    clave = str(input('Ingrese su Clave '))
+    deposito =str(50000)
     tarjeta = generarTarjeta()
 
     usersValues.append(user)
@@ -19,13 +19,14 @@ def createUser():
     usersValues.append(mail)
     usersValues.append(tarjeta)
     usersValues.append(clave)
+    usersValues.append(deposito)
 
     for i in length: #Fill userKeys
         usersKeys[i] = usersValues[i]
 
-    print(usersKeys)
+    print(usersKeys)#DEBUGGING
 
-    with open('./BD/ID'+tarjeta+'.txt', 'w', encoding='utf-8') as convert_file: #Sending information as json
+    with open('./BD/ID'+tarjeta+'.json', 'w', encoding='utf-8') as convert_file: #Sending information as json
         convert_file.write(json.dumps(usersKeys))
 
 #BD Card generator
@@ -40,12 +41,61 @@ def generarTarjeta():
         tarjeta.append(numeroRandom)
     
     numeroTarjeta = ''.join(tarjeta)
-    print(numeroTarjeta)
+    print(numeroTarjeta)#DEBUGGING
     return numeroTarjeta
 
 #BD User validation
 def user():
-    pass
+    datos = []
+    validaTarjeta = input("Ingrese Tarjeta ")
+    
+    with open('./BD/ID'+validaTarjeta+'.json', 'r', encoding='utf-8') as f:
+        datos = json.load(f)
+
+    print(datos) #DEBUGGING
+    print(datos['3'])#DEBUGGING
+    print(datos['4'])#DEBUGGING
+    intentos = 3
+
+    while intentos != 0:
+        if datos['3'] == validaTarjeta :
+            print('La tarjeta es valida')#DEBUGGING
+            validarClave = input("Ingrese Clave ")
+   
+            if datos['4'] == validarClave:
+                print('Su clave es valida')#DEBUGGING   
+                print('Usted tiene un saldo de: ' , datos['5'])
+                retiro = input('cuanto desea retirar?')
+                sacarDinero(datos,retiro,validaTarjeta)
+            else:
+                print('Clave erronea, ingrese su clave nuevamente')
+                intentos -=1
+            if intentos == 0:
+                print('Su tarjeta sera bloqueada')
+
+def sacarDinero(datos,retiro,tarjeta):
+    dinero = []
+    dineroCajero  = BDcajero()
+    if dineroCajero > 0:
+        dineroCliente = datos["5"]
+
+        print('Usted ha retirado ' , retiro)
+
+        if int(retiro) > 0:
+            datos["5"] = int(dineroCliente) - int(retiro)
+            print(datos)
+
+        with open('./BD/ID'+tarjeta+'.json', 'w', encoding='utf-8') as convert_file:
+            convert_file.write(json.dumps(datos))
+
+    nuevoValor = int(dineroCajero) - int(retiro)
+    dinero.append(nuevoValor)
+
+    with open('./cajero.txt', 'w') as f: ##Voy aqui
+        for d in dinero:
+            f.write(str(d))
+    
+    exit()
 
 #Saldo cajero
 def BDcajero():
@@ -55,11 +105,20 @@ def BDcajero():
         for line in f:
             saldo.append(line)
 
-    saldodisponible = ''.join(saldo)
+    saldoBase = ''.join(saldo)
 
-    if int(saldodisponible) > 1:
-        print("El cajero tiene saldo de ", saldodisponible)
-    return saldodisponible
+    if int(saldoBase) > 1:
+        print("El cajero tiene saldo de ", saldoBase)
+
+    return int(saldoBase)
+
+#Modifica saldo cajero
+#    def dinero():
+#       dinero = BDcajero()
+#
+#
+#       return saldo
+
 
 #Menu
 def options(choice): #Menu Choice validation
